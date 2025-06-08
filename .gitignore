@@ -1,0 +1,67 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+
+# Local environment
+env/
+venv/
+.env
+*.env
+.env.*
+
+# VS Code & IDE configs
+.vscode/
+.idea/
+
+# Virtual environments
+venv/
+env/
+.venv/
+.env/
+
+# Mac/Windows system files
+.DS_Store
+Thumbs.db
+
+# Pip log files
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Migrations (optional, for clean repos; keep if shared dev)
+# Uncomment if you want to ignore migration files initially
+# */migrations/
+# */migrations/*.py
+# */migrations/*.pyc
+
+# Jupyter notebooks
+*.ipynb
+
+# Compiled/temporary files
+*.log
+*.pot
+*.py~ 
+*.swp
+
+# Coverage & test output
+htmlcov/
+.coverage
+.tox/
+.pytest_cache/
+nosetests.xml
+coverage.xml
+*.cover
+
+# Build artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+
+
+# Ignore database
+db.sqlite3
+*.pyc
+__pycache__/

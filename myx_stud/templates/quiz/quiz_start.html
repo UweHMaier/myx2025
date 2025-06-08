@@ -1,0 +1,88 @@
+<!-- quiz/quiz_start.html -->
+{% extends 'base.html' %}
+{% block title %}Start Quiz{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <h2>Select Topic and Goal</h2>
+
+    {% if error %}
+      <div class="alert alert-warning">{{ error }}</div>
+    {% endif %}
+
+    <form method="post" id="quiz-form">
+        {% csrf_token %}
+
+        <!-- Topic selector -->
+        <div class="mb-3">
+            <label for="topic" class="form-label">Topic</label>
+            <select name="topic" id="topic" class="form-select" required>
+                <option value="">-- Select Topic --</option>
+                {% for topic in topics %}
+                    <option value="{{ topic }}" {% if topic == selected_topic %}selected{% endif %}>
+                        {{ topic }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Goal selector (initially hidden) -->
+        <div class="mb-3" id="goal-container" style="display: none;">
+            <label for="goal" class="form-label">Goal</label>
+            <select name="goal" id="goal" class="form-select" required>
+                <option value="">-- Select Goal --</option>
+                {% if selected_goal %}
+                    <option value="{{ selected_goal }}" selected>{{ selected_goal }}</option>
+                {% endif %}
+            </select>
+        </div>
+
+        <!-- Start button (initially hidden) -->
+        <button type="submit" class="btn btn-success" id="start-button" style="display: none;">
+            Start Quiz
+        </button>
+    </form>
+</div>
+
+<!-- JavaScript: load goals and toggle visibility -->
+<script>
+    const topicSelect = document.getElementById('topic');
+    const goalSelect = document.getElementById('goal');
+    const goalContainer = document.getElementById('goal-container');
+    const startButton = document.getElementById('start-button');
+
+    topicSelect.addEventListener('change', function () {
+        const topic = this.value;
+
+        if (!topic) {
+            goalContainer.style.display = 'none';
+            startButton.style.display = 'none';
+            return;
+        }
+
+        goalContainer.style.display = 'block';
+        goalSelect.innerHTML = '<option value="">Loading...</option>';
+        startButton.style.display = 'none';
+
+        fetch('/quiz/ajax/get-goals/?topic=' + encodeURIComponent(topic))
+            .then(response => response.json())
+            .then(data => {
+                goalSelect.innerHTML = '<option value="">-- Select Goal --</option>';
+                data.goals.forEach(goal => {
+                    const option = document.createElement('option');
+                    option.value = goal;
+                    option.textContent = goal;
+                    goalSelect.appendChild(option);
+                });
+            });
+    });
+
+    goalSelect.addEventListener('change', function () {
+        if (this.value) {
+            startButton.style.display = 'inline-block';
+        } else {
+            startButton.style.display = 'none';
+        }
+    });
+</script>
+{% endblock %}
