@@ -1,0 +1,32 @@
+Dokumentation der App MasteryX
+Ziel: Übung von Grundfertigkeiten in unterschiedlichen Lerndomänen, Fachern mit sofortigem, formativem Feedback.
+Für das Feedback ist entweder eine korrekte Antwort hinterlegt oder es gibt ein LLM-generiertes Feedback, wenn
+es um die Fehlerart geht (Grammatik) bzw. Lösungen multikriterial bewertet werden müssen (Schreiben).
+
+Verzeichnisstruktur (Django):
+MYX25 (Hauptordner, virtuelle Umgebung)
+    env
+    masteryx (main project package)
+        init.py
+        asgi.py  (async server entry point)
+        settings.py (project settings, database, apps)
+        urls.py (root url routes)
+        wsgi.py
+    media
+    myx_stud (meine erste App im Projekt)
+        management
+        migrations
+        static
+        templates
+        utils
+        admin.py (admin config for this app)
+        models.py (database models)
+        urls.py (app routes)
+        ...
+    .env
+    .gitignore
+    dp.sqlite3
+    docu.txt
+    manage.py (command line utility for Django)
+    requirements.txt
+

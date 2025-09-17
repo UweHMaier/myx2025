@@ -2,27 +2,20 @@
 __pycache__/
 *.py[cod]
 *$py.class
-*.pyc
 
-
-# Local environment
-env/
-venv/
+# Local environment files and folders
 .env
 *.env
 .env.*
+env/
+venv/
+.venv/
 
 # VS Code & IDE configs
 .vscode/
 .idea/
 
-# Virtual environments
-venv/
-env/
-.venv/
-.env/
-
-# Mac/Windows system files
+# OS system files
 .DS_Store
 Thumbs.db
 
@@ -30,22 +23,16 @@ Thumbs.db
 pip-log.txt
 pip-delete-this-directory.txt
 
-# Migrations (optional, for clean repos; keep if shared dev)
-# Uncomment if you want to ignore migration files initially
-# */migrations/
-# */migrations/*.py
-# */migrations/*.pyc
-
 # Jupyter notebooks
 *.ipynb
 
-# Compiled/temporary files
+# Editor swap/backup files
 *.log
 *.pot
 *.py~ 
 *.swp
 
-# Coverage & test output
+# Test/coverage
 htmlcov/
 .coverage
 .tox/
@@ -60,8 +47,11 @@ dist/
 *.egg-info/
 .eggs/
 
-
-# Ignore database
+# Django: Ignore SQLite DB
 db.sqlite3
-*.pyc
-__pycache__/
+
+# Optional: Ignore Django migrations (for clean initial repo)
+# Uncomment if you don’t want to version migrations yet
+# */migrations/
+# */migrations/*.py
+# */migrations/*.pyc
