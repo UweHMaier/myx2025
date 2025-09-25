@@ -3,6 +3,29 @@ Ziel: Übung von Grundfertigkeiten in unterschiedlichen Lerndomänen, Fachern mi
 Für das Feedback ist entweder eine korrekte Antwort hinterlegt oder es gibt ein LLM-generiertes Feedback, wenn
 es um die Fehlerart geht (Grammatik) bzw. Lösungen multikriterial bewertet werden müssen (Schreiben).
 
+Aufbau der APP:
+1. Kleinstes Bauelement sind Übungsaufgaben, zunächst nur eine Aufgabenformat:
+    - Text/Bild, Fragestellung, Eingabefeld
+    - Feedback einblenden (Art LLM oder statisch)
+    - Überarbeitung und weiteres FB
+    - Festlegen, wie häufig Überarbeitung möglich
+    - Zuordnung zu einem oder mehreren Lernzielen
+
+2. Aufgaben werden entlang von Lernzielen zu Übungssequenzen zusammengeschaltet
+    - Anzahl Aufgaben pro Lernziel
+    - Zufallsauswahl
+    - Start, Fortschrittszähler, Ende mit Score und verbalem Feedback
+
+3. Relationale Datenbankstruktur
+    - Aufgabentabelle
+    - Lernziele in einer Tabelle
+    - Themen in einer Tabelle
+
+4. Logging aller Aktivitäten sowie Ein- und Ausgaben der App auf Session-Ebene (Session ID)
+    - Öffnen der App im Browser: SessionID
+    - eine Übungssequenz: PracticeID
+
+
 Verzeichnisstruktur (Django):
 MYX25 (Hauptordner, virtuelle Umgebung)
     env
@@ -13,7 +36,7 @@ MYX25 (Hauptordner, virtuelle Umgebung)
         urls.py (root url routes)
         wsgi.py
     media
-    myx_stud (meine erste App im Projekt)
+    myx_stud (App für Lernende im Projekt)
         management
         migrations
         static
