@@ -35,8 +35,11 @@ DEBUG = True
 ALLOWED_HOSTS = [
     '127.0.0.1',
     'localhost',
-    '.pythonanywhere.com'
+    'masteryx.pythonanywhere.com'
 ]
+
+
+CSRF_TRUSTED_ORIGINS = ["https://masteryx.pythonanywhere.com"]
 
 
 # Application definition

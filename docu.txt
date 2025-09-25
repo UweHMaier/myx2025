@@ -53,3 +53,27 @@ MYX25 (Hauptordner, virtuelle Umgebung)
     manage.py (command line utility for Django)
     requirements.txt
 
+
+
+Änderungen deployen (immer, wenn du auf GitHub etwas Neues gepusht hast)
+1. In Bash-Konsole auf PythonAnywhere einloggen:
+cd ~/myx2025
+git pull origin main   # oder master, je nach Branch
+2. Virtuelle Umgebung aktivieren:
+source .venv/bin/activate
+pip install -r requirements.txt   # falls sich dependencies geändert haben
+3. Django-Kommandos ausführen:
+python manage.py migrate --noinput
+python manage.py collectstatic --noinput
+4. Webapp neu laden (im Dashboard → Web → Reload)
+oder direkt in Bash:
+touch /var/www/masteryx_pythonanywhere_com_wsgi.py
+
+
+Django.admin Superuser
+uwe.maier@ph-gmuend.de
+Username: masteryx
+Passwort: supermaster
+
+Neuen Superuser anlegen:
+python manage.py createsuperuser
