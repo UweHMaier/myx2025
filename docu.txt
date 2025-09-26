@@ -72,7 +72,7 @@ touch /var/www/masteryx_pythonanywhere_com_wsgi.py
 
 Django.admin Superuser
 uwe.maier@ph-gmuend.de
-Username: masteryx
+Username: lyg426
 Passwort: supermaster
 
 Neuen Superuser anlegen:
