@@ -35,9 +35,8 @@ class QuizQuestion(models.Model):
 
 # Model for all log info: student answer, feedback
 class QuestionLog(models.Model):
-    # ✅ beide IDs speichern
     session_id = models.CharField(max_length=200, default="Default text")   # Django-Session-Key
-    quiz_id = models.CharField(max_length=200, default="Default text")
+    quiz_id = models.CharField(max_length=200, default="Default text")      # für jeden Quiz Durchgang
     item_id = models.CharField(max_length=200, default="Default text")
     topic = models.CharField(max_length=200, default="Default text")
     goal = models.CharField(max_length=200, default="Default text")
@@ -45,9 +44,10 @@ class QuestionLog(models.Model):
     image = models.ImageField(upload_to='quiz_images/', blank=True, null=True)
     question = models.CharField(max_length=1000, default="Default text")
     correct_answer = models.CharField(max_length=1000, default="Default text")
-
     gemini_feedback = models.BooleanField(default=False)
     feedback_prompt = models.CharField(max_length=1000, default="Default text")
+
+    created_at = models.DateTimeField(auto_now_add=True)  # Startzeit (Start Quiz)
 
     stud_answ1 = models.CharField(max_length=1000, blank=True, default="")
     feedback1 = models.CharField(max_length=1000, blank=True, default="")

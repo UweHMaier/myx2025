@@ -6,6 +6,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_http_methods
 from django.utils import timezone
 from .utils.functions import get_feedback_unified
+from datetime import datetime
 
 
 # -------- Session-Bucket Helpers --------
@@ -39,6 +40,8 @@ def _flush_session_to_questionlog(request, quiz_id, item_id, meta):
     key = _session_key(quiz_id, item_id)
     bucket = request.session.get(key, [])
 
+    created_at = _pop_created_at(request, quiz_id, item_id)
+    
     # Minimal-Log, wenn kein Versuch existiert (z. B. nur 'Next' gedrückt)
     if not bucket:
         QuestionLog.objects.create(
@@ -56,6 +59,8 @@ def _flush_session_to_questionlog(request, quiz_id, item_id, meta):
             stud_answ1 = "", feedback1 = "", feedback1_rating = None,
             stud_answ2 = "", feedback2 = "", feedback2_rating = None,
             stud_answ3 = "", feedback3 = "", feedback3_rating = None,
+            # ⬇️ NEU:
+            created_at = created_at,
         )
         if key in request.session:
             del request.session[key]
@@ -91,6 +96,8 @@ def _flush_session_to_questionlog(request, quiz_id, item_id, meta):
         stud_answ3 = att3.get("answer",""),
         feedback3  = att3.get("feedback_text",""),
         feedback3_rating = att3.get("rating"),
+        # ⬇️ NEU:
+        created_at = created_at,
     )
 
     # Bucket löschen
@@ -99,14 +106,38 @@ def _flush_session_to_questionlog(request, quiz_id, item_id, meta):
         request.session.modified = True
 
 
+def _started_key(quiz_id, item_id):
+    # separater Key neben dem Bucket
+    return f"{_session_key(quiz_id, item_id)}_created_at"
+
+def _set_created_at_once(request, quiz_id, item_id):
+    """Setzt created_at nur, wenn noch nicht vorhanden (beim ersten Anzeigen der Aufgabe)."""
+    skey = _started_key(quiz_id, item_id)
+    if not request.session.get(skey):
+        request.session[skey] = timezone.now().isoformat()
+        request.session.modified = True
+
+def _pop_created_at(request, quiz_id, item_id):
+    """Liest created_at aus der Session und entfernt ihn danach."""
+    skey = _started_key(quiz_id, item_id)
+    iso = request.session.pop(skey, None)
+    if iso:
+        # robust nach datetime konvertieren (aware bevorzugt)
+        try:
+            dt = datetime.fromisoformat(iso)
+            if timezone.is_naive(dt):
+                dt = timezone.make_aware(dt, timezone.get_current_timezone())
+            return dt
+        except Exception:
+            return timezone.now()  # Fallback
+    return None
+
+
 # -------- Views --------
 
 def home(request):
     return render (request, "home.html")
 
-def quiz_items(request):
-    quizitems = QuizQuestion.objects.all()
-    return render(request, "quiz/quiz_items.html", {"quizitems": quizitems})
 
 def get_goals_for_topic(request):
     topic = request.GET.get('topic')
@@ -156,6 +187,7 @@ def quiz_start(request):
     })
 
 
+
 def quiz_view(request):
     topic = request.session.get('quiz_topic')
     goal = request.session.get('quiz_goal')
@@ -186,6 +218,11 @@ def quiz_view(request):
         request.session['quiz_run_id'] = quiz_id
 
     item_id = str(current_question.id)
+
+    # ⬇️ HIER: Start der Aufgabe stempeln (nur einmal je Item)
+    if request.method == 'GET':
+        _set_created_at_once(request, quiz_id, item_id)
+    # ⬆️
 
     if request.method == 'POST':
         rating_str = request.POST.get("rating")

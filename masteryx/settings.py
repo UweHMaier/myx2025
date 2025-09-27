@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'myx_stud'
+    'myx_stud'   # Übungsapp für Schüler
 ]
 
 MIDDLEWARE = [
