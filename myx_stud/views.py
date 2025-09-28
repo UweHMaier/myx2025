@@ -217,7 +217,7 @@ def quiz_view(request):
         quiz_id = uuid.uuid4().hex
         request.session['quiz_run_id'] = quiz_id
 
-    item_id = str(current_question.id)
+    item_id = str(current_question.item_id)
 
     # ⬇️ HIER: Start der Aufgabe stempeln (nur einmal je Item)
     if request.method == 'GET':

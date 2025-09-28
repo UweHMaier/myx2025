@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
-{% block title %}Quiz Complete{% endblock %}
+{% block title %}Quiz abgeschlossen{% endblock %}
 
 {% block content %}
 <div class="text-center mt-5">
-    <h2>🎉 Quiz Complete!</h2>
-    <p><strong>Topic:</strong> {{ topic }}<br>
-        <strong>Goal:</strong> {{ goal }}</p>
-    <p class="lead">You answered {{ correct }} out of {{ total }} questions correctly.</p>
-    <a href="{% url 'quiz_start' %}" class="btn btn-primary">Restart Quiz</a>
+    <h2>🎉 Ende dieser Übung</h2>
+    <p><strong>Fach: </strong> {{ topic }}<br>
+        <strong>Thema: </strong> {{ goal }}</p>
+    <p class="lead">Du hast {{ correct }} von {{ total }} Aufgaben korrekt bearbeitet.</p>
+    <a href="{% url 'quiz_start' %}" class="btn btn-primary">Nächste Übung</a>
 </div>
 {% endblock %}

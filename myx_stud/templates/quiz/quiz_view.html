@@ -3,25 +3,46 @@
 
 {% block content %}
   {% if question %}
-    <h4>Question {{ index }} of {{ total }}</h4>
+    <h4>Aufgabe {{ index }} von {{ total }}</h4>
 
-    {% if question.image %}
-      <img src="{{ question.image.url }}"
-        alt="Quiz Image"
-        class="img-fluid rounded shadow-lg mx-auto d-block mb-3"
-        style="max-width: 300px; max-height: 300px; object-fit: contain;">
-    {% endif %}
+    <div class="container">
+      <div class="row">
+        <div class="col-sm">
+          <!-- Linke Spalte mit Bild, Text und Aufgabe -->
+          {% if question.image %}
+            <img src="{{ question.image.url }}"
+              alt="Quiz Image"
+              class="img-fluid rounded shadow-lg mx-auto d-block mb-3"
+              style="max-width: 300px; max-height: 300px; object-fit: contain;">
+          {% endif %}
 
-    {% if "default" not in question.text and "Default" not in question.text %}
-      <p><strong>{{ question.text }}</strong></p>
-    {% endif %}
+          {% if question.text %}
+            <p><strong>{{ question.text }}</strong></p>
+          {% endif %}
 
-    <p>{{ question.question }}</p>
+        </div>
+        <div class="col-sm">
+          <!-- Rechte Spalte mit Eingabe, Feedbackrating, Feedback -->
+          
+          <p>{{ question.question }}</p>
 
+          <!-- Eingabefeld und Absenden -->
+          <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="rating" id="rating-input-submit" value="">
+            <textarea name="answer" class="form-control mb-2" rows="5" required>{{ user_answer }}</textarea>
+            <button type="submit" id="submit-btn" class="btn btn-primary" {% if feedback %}disabled{% endif %}>Absenden</button>
+          </form>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Feedbackfeld -->
     {% if feedback %}
       {% if feedback.is_correct is not None %}
         {% if feedback.is_correct %}
-          <div class="alert alert-success">Correct! 🎉</div>
+          <div class="alert alert-success">Richtig! 🎉</div>
         {% else %}
           <div class="alert alert-danger">
             Incorrect. The correct answer is: <strong>{{ feedback.correct_answer }}</strong><br>
@@ -47,16 +68,7 @@
 
     {% endif %}
 
-
-    <!-- Absenden -->
-    <form method="post">
-      {% csrf_token %}
-      <input type="hidden" name="rating" id="rating-input-submit" value="">
-      <textarea name="answer" class="form-control mb-2" rows="5" required>{{ user_answer }}</textarea>
-      <button type="submit" id="submit-btn" class="btn btn-primary" {% if feedback %}disabled{% endif %}>Absenden</button>
-    </form>
-
-
+    
     {% if feedback %}
       <!-- Nächste Frage -->
       <form method="post" class="mt-3">
