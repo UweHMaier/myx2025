@@ -1,0 +1,12 @@
+body {
+  background-color: lightblue;
+  font-family: verdana;
+}
+
+.center {
+  margin: auto;
+  width: 80%;
+  border: none;
+  padding: 10px;
+  text-align: center;
+}

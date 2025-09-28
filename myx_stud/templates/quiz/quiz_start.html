@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h2>Select Topic and Goal</h2>
+    <h2>Was musst Du üben?</h2>
 
     {% if error %}
       <div class="alert alert-warning">{{ error }}</div>
@@ -15,9 +15,9 @@
 
         <!-- Topic selector -->
         <div class="mb-3">
-            <label for="topic" class="form-label">Topic</label>
+            <label for="topic" class="form-label">Unterrichtsfach</label>
             <select name="topic" id="topic" class="form-select" required>
-                <option value="">-- Select Topic --</option>
+                <option value="">-- Wähle das Fach --</option>
                 {% for topic in topics %}
                     <option value="{{ topic }}" {% if topic == selected_topic %}selected{% endif %}>
                         {{ topic }}
@@ -28,9 +28,9 @@
 
         <!-- Goal selector (initially hidden) -->
         <div class="mb-3" id="goal-container" style="display: none;">
-            <label for="goal" class="form-label">Goal</label>
+            <label for="goal" class="form-label">Unterrichtsthema</label>
             <select name="goal" id="goal" class="form-select" required>
-                <option value="">-- Select Goal --</option>
+                <option value="">-- Wähle das Thema --</option>
                 {% if selected_goal %}
                     <option value="{{ selected_goal }}" selected>{{ selected_goal }}</option>
                 {% endif %}
@@ -39,7 +39,7 @@
 
         <!-- Start button (initially hidden) -->
         <button type="submit" class="btn btn-success" id="start-button" style="display: none;">
-            Start Quiz
+            Los geht's!
         </button>
     </form>
 </div>
