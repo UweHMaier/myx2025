@@ -3,12 +3,13 @@
 
 {% block content %}
   {% if question %}
-    <h4>Aufgabe {{ index }} von {{ total }}</h4>
 
     <div class="container">
       <div class="row">
         <div class="col-sm">
           <!-- Linke Spalte mit Bild, Text und Aufgabe -->
+          <p>Aufgabe {{ index }} von {{ total }}</p>
+
           {% if question.image %}
             <img src="{{ question.image.url }}"
               alt="Quiz Image"
@@ -17,7 +18,17 @@
           {% endif %}
 
           {% if question.text %}
-            <p><strong>{{ question.text }}</strong></p>
+            <p>{{ question.text }}</p>
+          {% endif %}
+
+              
+          {% if feedback %}
+            <!-- Nächste Frage -->
+            <form method="post" class="mt-3">
+              {% csrf_token %}
+              <input type="hidden" name="rating" id="rating-input-next" value="">
+              <button type="submit" name="next" id="next-btn" class="btn btn-secondary" disabled>Nächste Frage</button>
+            </form>
           {% endif %}
 
         </div>
@@ -34,49 +45,41 @@
             <button type="submit" id="submit-btn" class="btn btn-primary" {% if feedback %}disabled{% endif %}>Absenden</button>
           </form>
 
+
+          <!-- Feedbackfeld -->
+          {% if feedback %}
+            {% if feedback.is_correct is not None %}
+              {% if feedback.is_correct %}
+                <div class="alert alert-success">Richtig! 🎉</div>
+              {% else %}
+                <div class="alert alert-danger">
+                  Incorrect. The correct answer is: <strong>{{ feedback.correct_answer }}</strong><br>
+                  {{ feedback.feedback_ai }}
+                </div>
+              {% endif %}
+            {% else %}
+              <div class="alert alert-info">{{ feedback.feedback_ai|default:"No feedback available at the moment." }}</div>
+            {% endif %}
+
+          <!-- ⭐ Clickable Star Rating -->
+            <div id="rating-section" class="mt-3">
+              <strong>Wie hilfreich ist das Feedback? </strong>
+              <div id="star-rating" class="fs-3 text-warning" style="cursor: pointer;">
+                <span class="star" data-value="1">★</span>
+                <span class="star" data-value="2">★</span>
+                <span class="star" data-value="3">★</span>
+                <span class="star" data-value="4">★</span>
+                <span class="star" data-value="5">★</span>
+              </div>
+              <p>Verbessere deine Antwort!</p>
+            </div>
+
+          {% endif %}
+
+
         </div>
       </div>
     </div>
-
-    <!-- Feedbackfeld -->
-    {% if feedback %}
-      {% if feedback.is_correct is not None %}
-        {% if feedback.is_correct %}
-          <div class="alert alert-success">Richtig! 🎉</div>
-        {% else %}
-          <div class="alert alert-danger">
-            Incorrect. The correct answer is: <strong>{{ feedback.correct_answer }}</strong><br>
-            {{ feedback.feedback_ai }}
-          </div>
-        {% endif %}
-      {% else %}
-        <div class="alert alert-info">{{ feedback.feedback_ai|default:"No feedback available at the moment." }}</div>
-      {% endif %}
-
-    <!-- ⭐ Clickable Star Rating -->
-      <div id="rating-section" class="mt-3">
-        <strong>Wie hilfreich ist das Feedback? </strong>
-        <div id="star-rating" class="fs-3 text-warning" style="cursor: pointer;">
-          <span class="star" data-value="1">★</span>
-          <span class="star" data-value="2">★</span>
-          <span class="star" data-value="3">★</span>
-          <span class="star" data-value="4">★</span>
-          <span class="star" data-value="5">★</span>
-        </div>
-        <p>Verbessere deine Antwort!</p>
-      </div>
-
-    {% endif %}
-
-    
-    {% if feedback %}
-      <!-- Nächste Frage -->
-      <form method="post" class="mt-3">
-        {% csrf_token %}
-        <input type="hidden" name="rating" id="rating-input-next" value="">
-        <button type="submit" name="next" id="next-btn" class="btn btn-secondary" disabled>Nächste Frage</button>
-      </form>
-    {% endif %}
 
 
   {% else %}

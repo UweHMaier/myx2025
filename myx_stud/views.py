@@ -139,6 +139,7 @@ def home(request):
     return render (request, "home.html")
 
 
+
 def get_goals_for_topic(request):
     topic = request.GET.get('topic')
     goals = QuizQuestion.objects.filter(
@@ -147,7 +148,7 @@ def get_goals_for_topic(request):
     ).values_list('goal', flat=True).distinct()
     return JsonResponse({'goals': list(goals)})
 
-def quiz_start(request):
+def kurs_view(request):
     topics = QuizQuestion.objects.filter(active=True).values_list('topic', flat=True).distinct()
     goals = QuizQuestion.objects.filter(active=True).values_list('goal', flat=True).distinct()
 
@@ -162,7 +163,7 @@ def quiz_start(request):
         ).exists()
 
         if not quiz_exists:
-            return render(request, 'quiz/quiz_start.html', {
+            return render(request, 'kurs.html', {
                 'topics': topics,
                 'goals': goals,
                 'error': 'No quiz items found for the selected topic and goal.',
@@ -178,13 +179,17 @@ def quiz_start(request):
         request.session['quiz_goal'] = selected_goal
         request.session['quiz_index'] = 0
         request.session['correct_count'] = 0
+        # Score-Tracking
+        request.session['score_sum'] = 0.0
+        request.session['items_scored'] = 0
 
         return redirect('quiz_view')
 
-    return render(request, 'quiz/quiz_start.html', {
+    return render(request, 'kurs.html', {
         'topics': topics,
         'goals': goals,
     })
+
 
 
 
@@ -209,17 +214,19 @@ def quiz_view(request):
     feedback = None
     user_answer = ''
 
-    # 👉 IDs bereitstellen
-    session_id = request.session.session_key or request.session.cycle_key()  # SessionID = Browser-Sitzung
-    quiz_id = request.session.get('quiz_run_id')                             # QuizID = Run-UUID
+    # 👉 IDs bereitstellen (Session-ID sicherstellen)
+    if not request.session.session_key:
+        request.session.create()
+    session_id = request.session.session_key  # SessionID = Browser-Sitzung
+
+    quiz_id = request.session.get('quiz_run_id')  # QuizID = Run-UUID
     if not quiz_id:
-        # Fallback: sollte nicht passieren, aber zur Sicherheit
         quiz_id = uuid.uuid4().hex
         request.session['quiz_run_id'] = quiz_id
 
     item_id = str(current_question.item_id)
 
-    # ⬇️ HIER: Start der Aufgabe stempeln (nur einmal je Item)
+    # ⬇️ Start der Aufgabe stempeln (nur einmal je Item)
     if request.method == 'GET':
         _set_created_at_once(request, quiz_id, item_id)
     # ⬆️
@@ -232,6 +239,23 @@ def quiz_view(request):
         if 'next' in request.POST:
             if rating_int is not None:
                 _set_rating_on_last_attempt(request, quiz_id, item_id, rating_int)
+
+            # Score der Aufgabe (letzter Versuch im Bucket)
+            key = _session_key(quiz_id, item_id)
+            bucket = request.session.get(key, [])
+
+            if bucket:
+                last = bucket[-1]
+                try:
+                    last_score = float(last.get("score", 0.0) or 0.0)
+                except (TypeError, ValueError):
+                    last_score = 0.0
+
+                # Laufende Summe & Zähler nur bei vorhandenem Versuch
+                request.session['score_sum'] = float(request.session.get('score_sum', 0.0)) + last_score
+                request.session['items_scored'] = int(request.session.get('items_scored', 0)) + 1
+                request.session.modified = True
+            # else: keine Antwort → nichts zählen
 
             meta = {
                 "session_id": session_id,
@@ -253,14 +277,31 @@ def quiz_view(request):
         user_answer = (request.POST.get('answer') or '').strip()
         fb = get_feedback_unified(current_question, user_answer)
 
-        if fb["is_correct"] is True:
+        # Score defensiv normalisieren und clampen
+        score_val = fb.get("score")
+        try:
+            score_val = float(score_val)
+        except (TypeError, ValueError):
+            score_val = 0.0
+        if score_val < 0.0:
+            score_val = 0.0
+        if score_val > 1.0:
+            score_val = 1.0
+
+        # is_correct ggf. aus Score ableiten (Schwellwert 0.8)
+        is_correct = fb.get("is_correct")
+        if is_correct is None and score_val is not None:
+            is_correct = (score_val > 0.8)
+
+        if is_correct is True:
             request.session['correct_count'] = request.session.get('correct_count', 0) + 1
 
         _append_attempt_to_session(request, quiz_id, item_id, {
             "answer": user_answer,
             "feedback_text": fb.get("feedback_ai", "") or "",
-            "correct_answer": fb.get("correct_answer", "") or "",
-            "is_correct": fb.get("is_correct"),
+            "correct_answer": fb.get("correct_answer") or "",
+            "is_correct": is_correct,
+            "score": float(score_val),
             "rating": rating_int,
         })
 
@@ -276,24 +317,34 @@ def quiz_view(request):
     return render(request, 'quiz/quiz_view.html', context)
 
 
+
+
 def quiz_complete(request):
     correct = request.session.get('correct_count', 0)
     topic = request.session.get('quiz_topic')
-    goal = request.session.get('quiz_goal')
+    goal  = request.session.get('quiz_goal')
 
     total = QuizQuestion.objects.filter(
-        active=True,
-        topic=topic,
-        goal=goal
+        active=True, topic=topic, goal=goal
     ).count()
 
-    # Optionally reset Fortschritt
+    # ⬇️ NEU: Score-Ergebnis
+    score_sum = float(request.session.get('score_sum', 0.0))
+    items_scored = int(request.session.get('items_scored', 0))
+    avg_score = (score_sum / items_scored) if items_scored > 0 else 0.0
+
+    # Optional: zurücksetzen
     request.session['quiz_index'] = 0
     request.session['correct_count'] = 0
+    request.session['score_sum'] = 0.0
+    request.session['items_scored'] = 0
 
     return render(request, 'quiz/quiz_complete.html', {
         'correct': correct,
         'total': total,
         'topic': topic,
         'goal': goal,
+        'score_sum': round(score_sum, 3),     # ⬅️ NEU
+        'avg_score': round(avg_score, 3),     # ⬅️ NEU
     })
+

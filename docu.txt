@@ -58,7 +58,6 @@ MYX25 (Hauptordner, virtuelle Umgebung)
 Änderungen deployen (immer, wenn du auf GitHub etwas Neues gepusht hast)
 1. In Bash-Konsole auf PythonAnywhere einloggen:
 cd ~/myx2025
-
 2. Virtuelle Umgebung aktivieren:
 source .venv/bin/activate
 pip install -r requirements.txt   # falls sich dependencies geändert haben
@@ -77,3 +76,7 @@ Passwort: supermaster
 
 Neuen Superuser anlegen:
 python manage.py createsuperuser
+
+Starten in VS-Code
+env\Scripts\activate
+python manage.py runserver

@@ -1,4 +1,4 @@
-<!-- quiz/quiz_start.html -->
+<!-- kurs.html -->
 {% extends 'base.html' %}
 {% block title %}Training starten{% endblock %}
 
@@ -67,7 +67,7 @@
         fetch('/quiz/ajax/get-goals/?topic=' + encodeURIComponent(topic))
             .then(response => response.json())
             .then(data => {
-                goalSelect.innerHTML = '<option value="">-- Select Goal --</option>';
+                goalSelect.innerHTML = '<option value="">-- Wähle das Thema --</option>';
                 data.goals.forEach(goal => {
                     const option = document.createElement('option');
                     option.value = goal;
