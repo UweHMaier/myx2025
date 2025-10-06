@@ -42,7 +42,7 @@
             {% csrf_token %}
             <input type="hidden" name="rating" id="rating-input-submit" value="">
             <textarea name="answer" class="form-control mb-2" rows="5" required>{{ user_answer }}</textarea>
-            <button type="submit" id="submit-btn" class="btn btn-primary" {% if feedback %}disabled{% endif %}>Absenden</button>
+            <button type="submit" id="submit-btn" class="btn btn-primary m-1" {% if feedback %}disabled{% endif %}>Absenden</button>
           </form>
 
 
@@ -53,12 +53,11 @@
                 <div class="alert alert-success">Richtig! 🎉</div>
               {% else %}
                 <div class="alert alert-danger">
-                  Incorrect. The correct answer is: <strong>{{ feedback.correct_answer }}</strong><br>
                   {{ feedback.feedback_ai }}
                 </div>
               {% endif %}
             {% else %}
-              <div class="alert alert-info">{{ feedback.feedback_ai|default:"No feedback available at the moment." }}</div>
+              <div class="alert alert-info">{{ feedback.feedback_ai|default:"Sorry, habe gerade keine Zeit, dir zu helfen." }}</div>
             {% endif %}
 
           <!-- ⭐ Clickable Star Rating -->
