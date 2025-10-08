@@ -56,17 +56,68 @@ MYX25 (Hauptordner, virtuelle Umgebung)
 
 
 Änderungen deployen (immer, wenn du auf GitHub etwas Neues gepusht hast)
-1. In Bash-Konsole auf PythonAnywhere einloggen:
-cd ~/myx2025
-2. Virtuelle Umgebung aktivieren:
-source .venv/bin/activate
-pip install -r requirements.txt   # falls sich dependencies geändert haben
-3. Django-Kommandos ausführen:
-python manage.py migrate --noinput
-python manage.py collectstatic --noinput
-4. Webapp neu laden (im Dashboard → Web → Reload)
-oder direkt in Bash:
-touch /var/www/masteryx_pythonanywhere_com_wsgi.py
+Der Projektordner in pythonanywhere ist:
+/home/masteryx/myx2025/   (entspricht dem Projektordner hier in VS-Code)
+
+1. **Lokal kurz prüfen**
+* Beende den lokalen Server.
+* Stelle sicher, dass alle Migrationen angewendet sind:
+  ```bash
+  python manage.py makemigrations
+  python manage.py migrate
+  ```
+* Merke dir den Pfad zu deiner lokalen `db.sqlite3` (normal: im Projekt-Root).
+
+2. **PythonAnywhere: venv & Code bereit machen**
+* Auf PA eine **Bash-Konsole** öffnen:
+  ```bash
+  cd /home/masteryx/myx2025
+  source ~/.venv/myx2025/bin/activate
+  git pull
+  pip install -r requirements.txt
+ ```
+  (Wenn das venv noch nicht existiert, erst anlegen; sonst wie oben.)
+
+3. **Alte DB auf PA löschen**
+* In der Bash:
+  ```bash
+  cd /home/masteryx/myx2025
+  rm -f db.sqlite3
+  ```
+  (Falls deine Datei anders heißt, Namen anpassen.)
+
+4. **Neue DB hochladen**
+* In PythonAnywhere → **Files**-Tab → zu `/home/masteryx/myx2025` navigieren.
+* **Upload** klicken und deine **lokale `db.sqlite3`** auswählen/hochladen.
+  > Hinweis: `db.sqlite3` ist oft in `.gitignore`. Hochladen geht daher am besten über das Files-UI (nicht Git).
+
+5. **(Optional) Migrations „no-op“ laufen lassen**
+* Schadet nicht, falls minimale Unterschiede bestehen:
+  ```bash
+  cd /home/masteryx/myx2025
+  source ~/.venvs/myx2025/bin/activate
+  python manage.py migrate
+  ```
+
+6. **Static Files & Reload**
+* Einmal Static sammeln:
+  ```bash
+  python manage.py collectstatic --noinput
+  ```
+* Web-Tab → **Reload**.
+
+## Pflicht-Checks (Produktion)
+* In `settings.py`:
+  * `DEBUG = False`
+  * `ALLOWED_HOSTS = ["masteryx.pythonanywhere.com"]`
+  * `CSRF_TRUSTED_ORIGINS = ["https://masteryx.pythonanywhere.com"]` (Django ≥4)
+  * `STATIC_ROOT = BASE_DIR / "staticfiles"`
+  * `DATABASES['default']['NAME'] = BASE_DIR / "db.sqlite3"` (oder dein Dateiname)
+* Web-Tab → **Static files**:
+  URL: `/static/` → Pfad: `/home/masteryx/myx2025/staticfiles`
+* WSGI-Datei `/var/www/masteryx_pythonanywhere_com_wsgi.py` zeigt auf `myx2025.settings`.
+
+
 
 
 Django.admin Superuser
