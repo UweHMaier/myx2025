@@ -16,7 +16,6 @@ class QuizQuestion(models.Model):
     )
     # automatisch beim Anlegen gesetzt (Datum + Uhrzeit)
     created_at = models.DateTimeField(auto_now_add=True)
-
     title = models.CharField(max_length=200)
     topic = models.CharField(max_length=200)
     goal = models.CharField(max_length=200)
@@ -32,7 +31,6 @@ class QuizQuestion(models.Model):
         return self.question or f"QuizQuestion {self.item_id}"
     
 
-
 # Model for all log info: student answer, feedback
 class QuestionLog(models.Model):
     session_id = models.CharField(max_length=200, default="Default text")   # Django-Session-Key
@@ -46,20 +44,19 @@ class QuestionLog(models.Model):
     correct_answer = models.CharField(max_length=1000, default="Default text")
     gemini_feedback = models.BooleanField(default=False)
     feedback_prompt = models.CharField(max_length=1000, default="Default text")
-
-    created_at = models.DateTimeField(auto_now_add=True)  # Startzeit (Start Quiz)
-
+    # Zeiten
+    started_at = models.DateTimeField(null=True, blank=True)  # Startzeit des Items (aus Session)
+    created_at = models.DateTimeField(auto_now_add=True)      # Log erstellt
+    # Antworten und Feedback
     stud_answ1 = models.CharField(max_length=1000, blank=True, default="")
     feedback1 = models.CharField(max_length=1000, blank=True, default="")
-    feedback1_rating = models.IntegerField(null=True, blank=True)
-
     stud_answ2 = models.CharField(max_length=1000, blank=True, default="")
     feedback2 = models.CharField(max_length=1000, blank=True, default="")
-    feedback2_rating = models.IntegerField(null=True, blank=True)
-
     stud_answ3 = models.CharField(max_length=1000, blank=True, default="")
     feedback3 = models.CharField(max_length=1000, blank=True, default="")
-    feedback3_rating = models.IntegerField(null=True, blank=True)
+
+    # EIN finales Rating am Ende
+    item_rating = models.IntegerField(null=True, blank=True)
 
     def __str__(self):
         return f"{self.session_id} | quiz={self.quiz_id} | item={self.item_id}"

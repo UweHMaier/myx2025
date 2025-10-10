@@ -6,6 +6,7 @@ from django.http import JsonResponse
 
 
 # -------- Views --------
+# (ohne quiz view, wurde ausgelagert)
 
 def home(request):
     return render (request, "home.html")

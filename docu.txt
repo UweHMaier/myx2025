@@ -72,7 +72,7 @@ Der Projektordner in pythonanywhere ist:
 * Auf PA eine **Bash-Konsole** öffnen:
   ```bash
   cd /home/masteryx/myx2025
-  source ~/.venv/myx2025/bin/activate
+  source .venv/bin/activate
   git pull
   pip install -r requirements.txt
  ```
@@ -95,7 +95,6 @@ Der Projektordner in pythonanywhere ist:
 * Schadet nicht, falls minimale Unterschiede bestehen:
   ```bash
   cd /home/masteryx/myx2025
-  source ~/.venvs/myx2025/bin/activate
   python manage.py migrate
   ```
 
@@ -107,6 +106,7 @@ Der Projektordner in pythonanywhere ist:
 * Web-Tab → **Reload**.
 
 ## Pflicht-Checks (Produktion)
+Settings.py findet man in /home/masteryx/myx2025/masteryx/
 * In `settings.py`:
   * `DEBUG = False`
   * `ALLOWED_HOSTS = ["masteryx.pythonanywhere.com"]`
@@ -115,9 +115,9 @@ Der Projektordner in pythonanywhere ist:
   * `DATABASES['default']['NAME'] = BASE_DIR / "db.sqlite3"` (oder dein Dateiname)
 * Web-Tab → **Static files**:
   URL: `/static/` → Pfad: `/home/masteryx/myx2025/staticfiles`
-* WSGI-Datei `/var/www/masteryx_pythonanywhere_com_wsgi.py` zeigt auf `myx2025.settings`.
+* WSGI-Datei `/var/www/masteryx_pythonanywhere_com_wsgi.py` zeigt auf `myx2025.masteryx.settings`.
 
-
+## Reload
 
 
 Django.admin Superuser
