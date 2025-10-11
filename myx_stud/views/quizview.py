@@ -1,10 +1,13 @@
 import uuid
-from django.shortcuts import render, redirect
-from ..models import QuizQuestion, QuestionLog
+from django.contrib import messages
+from django.shortcuts import redirect, get_object_or_404, render
+from ..models import QuizQuestion, QuestionLog, Kurse 
 from django.utils import timezone
 from ..utils.functions import get_feedback_unified
 from datetime import datetime
 
+SESSION_KURS_KEY = "current_kurs_id"
+SESSION_QUIZ_ID = "quiz_run_id"
 
 # -------- Session-Bucket Helpers --------
 
@@ -63,8 +66,9 @@ def _flush_session_to_questionlog(request, quiz_id, item_id, meta):
         session_id=meta["session_id"],
         quiz_id=quiz_id,
         item_id=item_id,
-        topic=meta.get("topic", "Default text"),
-        goal=meta.get("goal", "Default text"),
+        fach=meta.get("fach", "Default text"),
+        kurs=meta.get("kurs", "Default text"),
+        level=meta.get("level", "Default text"),
         text=meta.get("text", ""),
         image=meta.get("image"),
         question=meta.get("question", ""),
@@ -128,17 +132,40 @@ def _pop_created_at(request, quiz_id, item_id):
 # --- Eigentliche Quiz View --- 
 
 def quiz_view(request):
-    topic = request.session.get('quiz_topic')
-    goal = request.session.get('quiz_goal')
+
+
+    # Kurs aus der Session holen
+    kurs_id = request.session.get(SESSION_KURS_KEY)
+    if not kurs_id:
+        messages.info(request, "Bitte zuerst einen Kurs auswählen.")
+        return redirect("kurswahl")
+    
+    # quiz_fach/quiz_kurs einmalig aus Kurse setzen (und Run initialisieren)
+    if not request.session.get('quiz_fach') or not request.session.get('quiz_kurs'):
+        k = get_object_or_404(Kurse, id=kurs_id)
+        request.session['quiz_fach'] = k.fach
+        request.session['quiz_kurs'] = k.kurs
+        request.session['quiz_index'] = 0
+        request.session['score_sum'] = 0.0
+        request.session['items_scored'] = 0
+        request.session[SESSION_QUIZ_ID] = uuid.uuid4().hex
+        request.session.modified = True
+
+    fach = request.session.get('quiz_fach')
+    kurs = request.session.get('quiz_kurs')
 
     questions = list(
         QuizQuestion.objects.filter(
             active=True,
-            topic=topic,
-            goal=goal
+            fach=fach,
+            kurs=kurs
         ).order_by('id')
     )
+
     total_questions = len(questions)
+    if total_questions == 0:
+        messages.warning(request, "Für diesen Kurs sind noch keine aktiven Fragen hinterlegt.")
+        return redirect('kurs')
     current_index = request.session.get('quiz_index', 0)
 
     if current_index >= total_questions:
@@ -154,10 +181,10 @@ def quiz_view(request):
         request.session.create()
     session_id = request.session.session_key  # SessionID = Browser-Sitzung
 
-    quiz_id = request.session.get('quiz_run_id')  # QuizID = Run-UUID
+    quiz_id = request.session.get(SESSION_QUIZ_ID)  # QuizID = Run-UUID
     if not quiz_id:
         quiz_id = uuid.uuid4().hex
-        request.session['quiz_run_id'] = quiz_id
+        request.session[SESSION_QUIZ_ID] = quiz_id
 
     item_id = str(current_question.item_id)
 
@@ -206,8 +233,9 @@ def quiz_view(request):
             # 4) Persistieren & weiter
             meta = {
                 "session_id": session_id,
-                "topic": current_question.topic,
-                "goal": current_question.goal,
+                "fach": current_question.fach,
+                "kurs": current_question.kurs,
+                "level": getattr(current_question, "level", ""),
                 "text": current_question.text,
                 "image": current_question.image,
                 "question": current_question.question,

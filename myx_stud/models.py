@@ -1,9 +1,23 @@
 from django.db import models
 import uuid
-from datetime import date
 
 
-# Create your models here.
+# Tabelle für die Kurse
+class Kurse(models.Model):
+    # Primärschlüssel als UUID
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # automatisch beim Anlegen gesetzt (Datum + Uhrzeit)
+    created_at = models.DateTimeField(auto_now_add=True)
+    fach = models.CharField(max_length=200,verbose_name="Fach")
+    kurs = models.CharField(max_length=200, verbose_name="Kurs")
+    intro = models.TextField(blank=True)
+
+    def __str__(self):
+        return f"{self.fach} – {self.kurs}"
+
+
+
+# Tabelle für die Übungsaufgaben
 class QuizQuestion(models.Model):
     # Primärschlüssel als UUID
 
@@ -17,8 +31,9 @@ class QuizQuestion(models.Model):
     # automatisch beim Anlegen gesetzt (Datum + Uhrzeit)
     created_at = models.DateTimeField(auto_now_add=True)
     title = models.CharField(max_length=200)
-    topic = models.CharField(max_length=200)
-    goal = models.CharField(max_length=200)
+    fach = models.CharField(max_length=200,verbose_name="Fach")
+    kurs = models.CharField(max_length=200, verbose_name="Kurs")
+    level = models.CharField(max_length=200, verbose_name="Level")
     text = models.CharField(max_length=1000, blank=True)
     image = models.ImageField(upload_to='quiz_images/', blank=True, null=True)
     question = models.CharField(max_length=1000, blank=True)
@@ -36,8 +51,9 @@ class QuestionLog(models.Model):
     session_id = models.CharField(max_length=200, default="Default text")   # Django-Session-Key
     quiz_id = models.CharField(max_length=200, default="Default text")      # für jeden Quiz Durchgang
     item_id = models.CharField(max_length=200, default="Default text")
-    topic = models.CharField(max_length=200, default="Default text")
-    goal = models.CharField(max_length=200, default="Default text")
+    fach = models.CharField(max_length=200, default="Default text", verbose_name="Fach")
+    kurs = models.CharField(max_length=200, default="Default text", verbose_name="Kurs")
+    level = models.CharField(max_length=200, default="Default text", verbose_name="Level")
     text = models.CharField(max_length=1000, default="Default text")
     image = models.ImageField(upload_to='quiz_images/', blank=True, null=True)
     question = models.CharField(max_length=1000, default="Default text")

@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% block title %}Kurswahl{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+  <h2>Kurs wählen</h2>
+
+  <form method="post" id="kurswahl-form">
+    {% csrf_token %}
+
+    <!-- Fach -->
+    <div class="mb-3">
+      <label for="fach" class="form-label">Fach</label>
+      <select id="fach" name="fach" class="form-select" required>
+        <option value="" selected disabled>Bitte wählen…</option>
+        {% for f in faecher %}
+          <option value="{{ f }}">{{ f }}</option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <!-- Kurs -->
+    <div class="mb-3">
+      <label for="kurs" class="form-label">Kurs</label>
+      <select id="kurs" name="kurs" class="form-select" required disabled>
+        <option value="" selected>Bitte zuerst ein Fach wählen…</option>
+      </select>
+    </div>
+
+    <button class="btn btn-primary" type="submit" id="submit-btn" disabled>Weiter</button>
+  </form>
+
+  <p class="mt-3"><a href="{% url 'home' %}">Zurück</a></p>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+  const fachSel = document.getElementById("fach");
+  const kursSel = document.getElementById("kurs");
+  const submitBtn = document.getElementById("submit-btn");
+
+  fachSel.addEventListener("change", async function () {
+    kursSel.innerHTML = '<option value="" selected>Lade Kurse…</option>';
+    kursSel.disabled = true;
+    submitBtn.disabled = true;
+
+    const resp = await fetch("{% url 'get_kurse_for_fach' %}?fach=" + encodeURIComponent(fachSel.value), {
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    });
+    const data = await resp.json();
+
+    kursSel.innerHTML = '<option value="" selected>Bitte wählen…</option>';
+    (data.kurse || []).forEach(k => {
+      const opt = document.createElement("option");
+      opt.value = k; opt.textContent = k;
+      kursSel.appendChild(opt);
+    });
+    kursSel.disabled = (kursSel.options.length <= 1);
+  });
+
+  kursSel.addEventListener("change", function () {
+    submitBtn.disabled = (kursSel.value === "");
+  });
+});
+</script>
+{% endblock %}
+
