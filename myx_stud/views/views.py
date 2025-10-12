@@ -2,14 +2,13 @@ from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
 from ..models import QuizQuestion, Kurse
 from django.http import JsonResponse
+from ..views.quizview import SESSION_KURS_KEY, SESSION_QUIZ_ID  # oder die Konstanten lokal erneut definieren
 
 
 SESSION_KURS_KEY = "current_kurs_id"
 SESSION_QUIZ_ID  = "quiz_run_id"   # konsistent benutzen
 
 
-# -------- Views --------
-# (ohne quiz view, wurde ausgelagert)
 
 def home(request):
     return render (request, "home.html")
@@ -17,88 +16,108 @@ def home(request):
 
 
 def get_kurse_for_fach(request):
-    fach = request.GET.get("fach", "")
+    """AJAX: gibt Kursnamen zu einem Fach zurück (für das Dropdown)."""
+    fach = (request.GET.get("fach") or "").strip()
+    if not fach:
+        return JsonResponse({"kurse": []})
+
     kurse = (Kurse.objects
              .filter(fach=fach)
              .values_list("kurs", flat=True)
              .order_by("kurs")
              .distinct())
+
     return JsonResponse({"kurse": list(kurse)})
 
 
-
 def kurswahl(request):
+    """Fach/Kurs auswählen. POST setzt Kurs in Session und leert alten Quiz-Run."""
     if request.method == "POST":
-        fach = request.POST.get("fach")
-        kurs = request.POST.get("kurs")
+        fach = (request.POST.get("fach") or "").strip()
+        kurs = (request.POST.get("kurs") or "").strip()
+
         if not fach or not kurs:
             messages.warning(request, "Bitte zuerst Fach und dann Kurs auswählen.")
             return redirect("kurswahl")
-        
+
         # 1) Alten Quiz-Session-State wegwerfen
         _clear_quiz_session(request)
 
-        # 2) Neuen Kurs setzen
+        # 2) Neuen Kurs setzen (UniqueConstraint auf (fach, kurs) hilft hier)
         k = get_object_or_404(Kurse, fach=fach, kurs=kurs)
         request.session[SESSION_KURS_KEY] = str(k.id)
         request.session.modified = True
         return redirect("kurs")
 
-    faecher = Kurse.objects.values_list("fach", flat=True).order_by("fach").distinct()
+    faecher = (Kurse.objects
+               .values_list("fach", flat=True)
+               .order_by("fach")
+               .distinct())
+
     return render(request, "kurswahl.html", {"faecher": faecher})
 
 
-
 def kurs(request):
+    """Kurs-Detailseite (zeigt z. B. Konzepte via kurs.konzepte.all)."""
     kurs_id = request.session.get(SESSION_KURS_KEY)
     if not kurs_id:
         messages.info(request, "Bitte zuerst einen Kurs auswählen.")
         return redirect("kurswahl")
+
     k = get_object_or_404(Kurse, id=kurs_id)
     return render(request, "kurs.html", {"kurs": k})
 
 
 
+
 def quiz_complete(request):
+    # Aktuellen Kurs holen (wie in quiz_view)
+    kurs_id = request.session.get(SESSION_KURS_KEY)
+    if not kurs_id:
+        messages.info(request, "Bitte zuerst einen Kurs auswählen.")
+        return redirect("kurswahl")
+
+    # Korrekte gemerkte Antworten (Zähler kam aus der quiz_view)
     correct = int(request.session.get('correct_count', 0))
 
-    # aus dem Lauf übernehmen
-    fach  = request.session.get('quiz_fach')
-    kurs  = request.session.get('quiz_kurs')
-    level = request.session.get('quiz_level')  # optional; nur gesetzt, wenn du's vorher speicherst
+    # Anzahl aktiver Aufgaben im Kurs (neues Modell!)
+    total = QuizQuestion.objects.filter(
+        active=True,
+        konzept__kurs_id=kurs_id
+    ).count()
 
-    # Anzahl Aufgaben zu diesem Fach/Kurs (und ggf. Level)
-    qs = QuizQuestion.objects.filter(active=True, fach=fach, kurs=kurs)
-    if level:
-        qs = qs.filter(level=level)
-    total = qs.count()
-
-    # Score-Ergebnis
+    # Score-Ergebnis (Durchschnitt aus den tatsächlich bewerteten Items)
     score_sum    = float(request.session.get('score_sum', 0.0))
     items_scored = int(request.session.get('items_scored', 0))
     avg_score    = (score_sum / items_scored) if items_scored > 0 else 0.0
 
-    # Optional: Lauf zurücksetzen (Index/Counter). Run-ID & Auswahl lässt du i. d. R. stehen.
+    # Labels nur für Anzeige (optional, falls du sie im Template zeigen willst)
+    fach_label = request.session.get('quiz_fach')  # evtl. nicht mehr gesetzt
+    kurs_label = request.session.get('quiz_kurs')  # evtl. nicht mehr gesetzt
+
+    # Soft-Reset für einen neuen Durchlauf im selben Kurs
     request.session['quiz_index']    = 0
     request.session['correct_count'] = 0
     request.session['score_sum']     = 0.0
     request.session['items_scored']  = 0
+    request.session.modified = True
 
     return render(request, 'quiz/quiz_complete.html', {
         'correct': correct,
         'total': total,
-        'fach': fach,
-        'kurs': kurs,
-        'level': level,  # optional, im Template einfach mit |default:"" absichern
-        'score_sum': round(score_sum, 3),
         'avg_score': round(avg_score, 3),
+        'score_sum': round(score_sum, 3),
+        # optional, nur wenn du sie anzeigst:
+        'fach': fach_label,
+        'kurs': kurs_label,
     })
 
 
 def _clear_quiz_session(request):
+    """Optional: ALLES zum Quizlauf aus der Session entfernen (harte Rücksetzung)."""
     # Feste Keys leeren
     keys_to_drop = [
-        'quiz_fach', 'quiz_kurs', 'quiz_level',
+        'quiz_fach', 'quiz_kurs', 'quiz_level',  # evtl. gar nicht mehr genutzt
         'quiz_index', 'correct_count',
         'score_sum', 'items_scored',
         SESSION_QUIZ_ID,
@@ -113,3 +132,5 @@ def _clear_quiz_session(request):
             del request.session[k]
 
     request.session.modified = True
+
+

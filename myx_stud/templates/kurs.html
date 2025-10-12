@@ -10,6 +10,22 @@
     <button class="btn btn-success" type="submit">Quiz starten</button>
     <a class="btn btn-outline-secondary ms-2" href="{% url 'kurswahl' %}">Kurs wechseln</a>
   </form>
+
+  <div>
+    <h2>Inhalte im Kurs</h2>
+    <ul>
+    {% for konzept in kurs.konzepte.all %}
+      <li>
+        <strong>{{ konzept.name }}</strong>
+        {% if konzept.definition %}<div>{{ konzept.definition }}</div>{% endif %}
+      </li>
+    {% empty %}
+      <li>Keine Inhalte vorhanden.</li>
+    {% endfor %}
+    </ul>
+  </div>
+
+
 </div>
 {% endblock %}
 
