@@ -1,11 +1,11 @@
 from django.contrib import messages
 from django.shortcuts import render, redirect, get_object_or_404
-from ..models import QuizQuestion, Kurse
+from ..models import QuizQuestion, Kurse, Konzepte
 from django.http import JsonResponse
-from ..views.quizview import SESSION_KURS_KEY, SESSION_QUIZ_ID  # oder die Konstanten lokal erneut definieren
 
 
 SESSION_KURS_KEY = "current_kurs_id"
+SESSION_KONZEPT_KEY = "current_konzept_id"
 SESSION_QUIZ_ID  = "quiz_run_id"   # konsistent benutzen
 
 
@@ -69,13 +69,22 @@ def kurs(request):
 
 
 
+def konzept(request, konzept_id):
+    k = get_object_or_404(Konzepte, id=konzept_id)
+    # Auswahl merken (für quiz_view)
+    request.session[SESSION_KONZEPT_KEY] = str(k.id)
+    request.session.modified = True
+    return render(request, "konzept.html", {"konzept": k, "kurs": k.kurs})
+
+
+
 
 def quiz_complete(request):
     # Aktuellen Kurs holen (wie in quiz_view)
     kurs_id = request.session.get(SESSION_KURS_KEY)
     if not kurs_id:
         messages.info(request, "Bitte zuerst einen Kurs auswählen.")
-        return redirect("kurswahl")
+        return redirect("konzept")
 
     # Korrekte gemerkte Antworten (Zähler kam aus der quiz_view)
     correct = int(request.session.get('correct_count', 0))
@@ -121,6 +130,7 @@ def _clear_quiz_session(request):
         'quiz_index', 'correct_count',
         'score_sum', 'items_scored',
         SESSION_QUIZ_ID,
+        SESSION_KONZEPT_KEY
     ]
     for k in keys_to_drop:
         if k in request.session:

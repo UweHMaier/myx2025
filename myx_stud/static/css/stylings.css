@@ -3,10 +3,30 @@ body {
   font-family: verdana;
 }
 
+
 .center {
-  margin: auto;
-  width: 80%;
+  margin: 2rem auto;          /* centers horizontally */
+  width: 100%;                 /* fluid by default */
+  max-width: 200px;            /* ~phone width on large screens */
+  padding: 16px;
   border: none;
-  padding: 10px;
-  text-align: center;
+  text-align: center;            /* don't center all text unless you want to */
 }
+
+.container {
+  margin: 2px;
+}
+
+
+/* Global app content wrapper */
+#app-shell {
+  width: 100%;
+  max-width: 720px;     /* cap on wide screens */
+  margin-inline: auto;  /* center horizontally */
+  padding-inline: 16px; /* a little breathing room */
+}
+
+/* Make inner stuff behave nicely */
+#app-shell img,
+#app-shell video,
+#app-shell canvas { max-width: 100%; height: auto; }

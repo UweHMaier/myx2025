@@ -44,12 +44,12 @@ class QuizQuestion(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     konzept = models.ForeignKey(Konzepte, on_delete=models.CASCADE, related_name="quizitems")  # ⬅️ plural
     title = models.CharField(max_length=200)
-    text = models.TextField(blank=True)
+    text = models.CharField(max_length=200, blank=True)
     image = models.ImageField(upload_to='quiz_images/', blank=True, null=True)
-    question = models.TextField(blank=True)             # ⬅️ optional TextField
-    correct_answer = models.TextField(blank=True)       # ⬅️ optional TextField
+    question = models.CharField(max_length=200, blank=True)
+    correct_answer = models.CharField(max_length=200, blank=True)
     gemini_feedback = models.BooleanField(default=False)
-    feedback_prompt = models.TextField(blank=True)      # ⬅️ optional TextField
+    feedback_prompt = models.CharField(max_length=500, blank=True)
     active = models.BooleanField(default=True)
 
     def __str__(self):
@@ -69,7 +69,6 @@ class QuestionLog(models.Model):
     konzept = models.CharField(max_length=200, blank=True, verbose_name="Konzept")
 
     text            = models.TextField(blank=True)
-    image           = models.ImageField(upload_to='quiz_images/', blank=True, null=True)
     question        = models.TextField(blank=True)
     correct_answer  = models.TextField(blank=True)
     gemini_feedback = models.BooleanField(default=False)

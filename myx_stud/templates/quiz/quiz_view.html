@@ -38,12 +38,8 @@
     {# ===================== NORMALER QUIZ-SCHIRM ===================== #}
 
     <div class="container">
-      <div class="row">
-        <div class="col-sm">
-          <!-- Linke Spalte mit Bild, Text und Aufgabe -->
-          <p>Aufgabe {{ index }} von {{ total }}</p>
-
           <!-- Aufgabenkasten -->
+          <p><b>Aufgabe {{ index }}</b> von {{ total }}</p>
 
           {% if question.image %}
             <img src="{{ question.image.url }}"
@@ -52,29 +48,14 @@
               style="max-width: 300px; max-height: 300px; object-fit: contain;">
           {% endif %}
 
-          <div class="alert alert-primary">
-            {% if question.text %}
-              <p>{{ question.text }}</p>
-            {% endif %}
-          </div>
-
-          <div class="alert alert-dark">
-            <p>{{ question.question }}</p>
-          </div>
-
-        </div>
-
-        <div class="col-sm">
-
-          <!-- Eingabefeld und Absenden; wird ausgeblendet, wenn am Ende Rating stattfindet -->
-          {% if not ask_rating %}
-            <form method="post">
-              {% csrf_token %}
-              <textarea name="answer" class="form-control mb-2" rows="5" required>{{ user_answer }}</textarea>
-              <button type="submit" id="submit-btn" class="btn btn-primary m-1">Absenden</button>
-            </form>
+          {% if question.text %}
+            <p>{{ question.text }}</p>
           {% endif %}
 
+          <p>{{ question.question }}</p>
+
+          <!-- Eingabefeld  -->
+          <textarea name="answer" class="form-control mb-2" rows="5" required>{{ user_answer }}</textarea>
 
           <!-- Feedback -->
           {% if feedback %}
@@ -82,24 +63,25 @@
               {% if feedback.is_correct %}
                 <div class="alert alert-success">Richtig! 🎉</div>
               {% else %}
-                <div class="alert alert-danger">{{ feedback.feedback_ai }}</div>
+                <div class="alert alert-info">{{ feedback.feedback_ai }}</div>
               {% endif %}
             {% else %}
               <div class="alert alert-info">{{ feedback.feedback_ai|default:"Sorry, habe gerade keine Zeit, dir zu helfen." }}</div>
             {% endif %}
           {% endif %}
 
+          <!-- Buttons -->
+          <form method="post">
+            {% csrf_token %}
+            <button type="submit" id="submit-btn" class="btn btn-primary m-1">Absenden</button>
+          </form>
 
-          {# NEXT-Bereich #}
-          {% if feedback %}
-            <!-- Nach Feedback, aber noch KEINE Rating-Phase -->
-            <form method="post" class="mt-3">
+          <form method="post" class="mt-3">
               {% csrf_token %}
               <button type="submit" name="next" id="next-btn" class="btn btn-secondary">Nächste Frage</button>
-            </form>
-          {% endif %}
+          </form>
 
-        </div>
+
       </div>
     </div>
     {% endif %}

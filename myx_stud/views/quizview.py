@@ -10,6 +10,7 @@ from ..utils.functions import get_feedback_unified
 
 
 SESSION_KURS_KEY = "current_kurs_id"
+SESSION_KONZEPT_KEY = "current_konzept_id"
 SESSION_QUIZ_ID = "quiz_run_id"
 
 
@@ -127,8 +128,6 @@ def _flush_session_to_questionlog(request, quiz_id, item_id, meta):
         konzept=meta.get("konzept", ""),
 
         text=meta.get("text", ""),
-        # image: hier nur der Dateiname/Path (string) oder None
-        image=meta.get("image"),
         question=meta.get("question", ""),
         correct_answer=meta.get("correct_answer", ""),
         gemini_feedback=bool(meta.get("gemini_feedback", False)),
@@ -170,13 +169,23 @@ def quiz_view(request):
         request.session.modified = True
 
     # Fragen zum Kurs laden
-    questions = list(
-        QuizQuestion.objects.filter(
+    # === NEU: Erst versuchen, über KONZEPT zu filtern ===
+    konzept_id = request.session.get(SESSION_KONZEPT_KEY)
+    if konzept_id:
+        questions_qs = QuizQuestion.objects.filter(
+            active=True,
+            konzept_id=konzept_id
+        ).order_by('id')
+    else:
+        # Fallback: alle Fragen des Kurses
+        questions_qs = QuizQuestion.objects.filter(
             active=True,
             konzept__kurs_id=kurs_id
         ).order_by('id')
-    )
 
+    questions = list(questions_qs)
+
+    # Prüfen ob Fragen da
     total_questions = len(questions)
     if total_questions == 0:
         messages.warning(request, "Für diesen Kurs sind noch keine aktiven Fragen hinterlegt.")
