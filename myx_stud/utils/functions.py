@@ -22,7 +22,7 @@ def get_gemini_feedback(text, question, user_answer, correct_answer, feedback_pr
         Aufgabentext: {text}
         Frage: {question}
         Antwort des Schülers: {user_answer}
-        Hinweis auf die korrekte Antwort: {correct_answer}
+        Korrekte Antwort: {correct_answer}
 
         Erstelle dein Feedback nach diesen Vorgaben: {feedback_prompt}
 
@@ -50,7 +50,6 @@ def get_gemini_feedback(text, question, user_answer, correct_answer, feedback_pr
 
     try:
         response = model.generate_content(prompt)
-
         # Text robust extrahieren
         text_out = (getattr(response, "text", None) or "").strip()
         if not text_out and getattr(response, "candidates", None):
