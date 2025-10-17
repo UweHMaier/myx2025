@@ -13,14 +13,21 @@
   {% endif %}
 
   <p class="mt-3">{{ konzept.definition|default:"noch keine Erklärung ...." }}</p>
+  <p>Beispiel:</p>
   <p class="mt-3">{{ konzept.example|default:"noch kein Beispiel ...." }}</p>
 
   <div class="d-grid gap-2 mt-4">
 
-    <form method="get" action="{% url 'quiz_view' %}">
-      <button class="btn btn-success" type="submit">Quiz starten</button>
-    </form>
+    {% if has_quiz %}
+      <form method="get" action="{% url 'quiz_view' %}">
+        <button class="btn btn-success" type="submit">Quiz starten</button>
+      </form>
+    {% else %}
+      <p>Noch keine Übungen verfügbar</p>
+    {% endif %}
 
-    <a class="btn btn-link" href="{% url 'kurs' %}">Zurück zur Kursseite</a>
   </div>
+
+  <a class="btn btn-outline-secondary mt-3" href="{% url 'kurs' %}">Zum Kurs</a>
+
 {% endblock %}

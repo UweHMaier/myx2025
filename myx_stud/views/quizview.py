@@ -154,6 +154,7 @@ def quiz_view(request):
     if not kurs_id:
         messages.info(request, "Bitte zuerst einen Kurs auswählen.")
         return redirect("kurswahl")
+    
 
     # Run/Progress initialisieren (fach/kurs NICHT mehr in Session nötig)
     if request.session.get('quiz_index') is None:

@@ -46,6 +46,8 @@ def kurswahl(request):
         # 2) Neuen Kurs setzen (UniqueConstraint auf (fach, kurs) hilft hier)
         k = get_object_or_404(Kurse, fach=fach, kurs=kurs)
         request.session[SESSION_KURS_KEY] = str(k.id)
+        # >>> HIER: altes Konzept vergessen, weil Kurs gewechselt
+        request.session.pop(SESSION_KONZEPT_KEY, None)
         request.session.modified = True
         return redirect("kurs")
 
@@ -74,7 +76,12 @@ def konzept(request, konzept_id):
     # Auswahl merken (für quiz_view)
     request.session[SESSION_KONZEPT_KEY] = str(k.id)
     request.session.modified = True
-    return render(request, "konzept.html", {"konzept": k, "kurs": k.kurs})
+    has_quiz = QuizQuestion.objects.filter(konzept=k, active=True).exists()
+    return render(request, "konzept.html", {
+        "konzept": k, 
+        "kurs": k.kurs,
+        "has_quiz": has_quiz,
+        })
 
 
 
@@ -85,6 +92,12 @@ def quiz_complete(request):
     if not kurs_id:
         messages.info(request, "Bitte zuerst einen Kurs auswählen.")
         return redirect("konzept")
+
+    # Konzept muss vorhanden sein, damit wir zurücknavigieren können
+    konzept_id = request.session.get(SESSION_KONZEPT_KEY)
+    if not konzept_id:
+        messages.info(request, "Bitte zuerst ein Konzept auswählen.")
+        return redirect("kurs")  # oder eigene Konzeptliste
 
     # Korrekte gemerkte Antworten (Zähler kam aus der quiz_view)
     correct = int(request.session.get('correct_count', 0))
@@ -116,9 +129,7 @@ def quiz_complete(request):
         'total': total,
         'avg_score': round(avg_score, 3),
         'score_sum': round(score_sum, 3),
-        # optional, nur wenn du sie anzeigst:
-        'fach': fach_label,
-        'kurs': kurs_label,
+        'konzept_id': konzept_id
     })
 
 
@@ -129,8 +140,7 @@ def _clear_quiz_session(request):
         'quiz_fach', 'quiz_kurs', 'quiz_level',  # evtl. gar nicht mehr genutzt
         'quiz_index', 'correct_count',
         'score_sum', 'items_scored',
-        SESSION_QUIZ_ID,
-        SESSION_KONZEPT_KEY
+        SESSION_QUIZ_ID
     ]
     for k in keys_to_drop:
         if k in request.session:

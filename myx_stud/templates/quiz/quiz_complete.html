@@ -4,13 +4,16 @@
 {% block content %}
 <div class="text-center mt-5">
     <h2>🎉 Ende dieser Übung</h2>
-    <p><strong>Fach: </strong> {{ fach }}<br>
-        <strong>Kurs: </strong> {{ kurs }}</p>
     <p class="lead">Du hast {{ correct }} von {{ total }} Aufgaben korrekt bearbeitet.</p>
 
     <p>Gesamt-Score: {{ score_sum }}</p>
     <p>Durchschnittlicher Score pro Aufgabe: {{ avg_score }}</p>
 
-    <a href="{% url 'kurs' %}" class="btn btn-primary">Zur Kursübersicht</a>
+    {% if konzept_id %}
+    <a href="{% url 'konzept' konzept_id %}" class="btn btn-primary">Zurück</a>
+    {% else %}
+    <a href="{% url 'kurs' %}" class="btn btn-outline-secondary">Zum Kurs</a>
+    {% endif %}
+
 </div>
 {% endblock %}
