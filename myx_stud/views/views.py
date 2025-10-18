@@ -7,7 +7,7 @@ from django.http import JsonResponse
 SESSION_KURS_KEY = "current_kurs_id"
 SESSION_KONZEPT_KEY = "current_konzept_id"
 SESSION_QUIZ_ID  = "quiz_run_id"   # konsistent benutzen
-
+SCORES_KEY = "konzept_scores"   # { "<konzept_id>": int(0..100) }
 
 
 def home(request):
@@ -67,7 +67,17 @@ def kurs(request):
         return redirect("kurswahl")
 
     k = get_object_or_404(Kurse, id=kurs_id)
-    return render(request, "kurs.html", {"kurs": k})
+    
+    # get scores saved at quiz_complete, e.g. {"<konzept_id>": 0..100}
+    scores_map = request.session.get(SCORES_KEY, {})
+
+    # attach attribute on the Python objects so template stays simple
+    konzepte = list(k.konzepte.all())
+    for z in konzepte:
+        z.scores = scores_map.get(str(z.id))  # int or None
+
+    return render(request, "kurs.html", {"kurs": k, "konzepte": konzepte})
+
 
 
 
@@ -77,6 +87,10 @@ def konzept(request, konzept_id):
     request.session[SESSION_KONZEPT_KEY] = str(k.id)
     request.session.modified = True
     has_quiz = QuizQuestion.objects.filter(konzept=k, active=True).exists()
+
+    scores_map = request.session.get(SCORES_KEY, {})  # {"<konzept_id>": 0..100}
+    k.scores = scores_map.get(str(k.id))  # int oder None
+
     return render(request, "konzept.html", {
         "konzept": k, 
         "kurs": k.kurs,
@@ -112,10 +126,15 @@ def quiz_complete(request):
     score_sum    = float(request.session.get('score_sum', 0.0))
     items_scored = int(request.session.get('items_scored', 0))
     avg_score    = (score_sum / items_scored) if items_scored > 0 else 0.0
+    percent = max(0, min(100, int(round(100 * avg_score))))
 
-    # Labels nur für Anzeige (optional, falls du sie im Template zeigen willst)
-    fach_label = request.session.get('quiz_fach')  # evtl. nicht mehr gesetzt
-    kurs_label = request.session.get('quiz_kurs')  # evtl. nicht mehr gesetzt
+    # Save to session per Konzept
+    scores = request.session.get(SCORES_KEY, {})
+    if konzept_id:
+        scores[str(konzept_id)] = int(max(0, min(100, percent)))
+        request.session[SCORES_KEY] = scores
+        request.session.modified = True
+
 
     # Soft-Reset für einen neuen Durchlauf im selben Kurs
     request.session['quiz_index']    = 0
@@ -126,10 +145,11 @@ def quiz_complete(request):
 
     return render(request, 'quiz/quiz_complete.html', {
         'correct': correct,
-        'total': total,
-        'avg_score': round(avg_score, 3),
+        'total'  : total,
+        'avg_score': round(avg_score, 3),  # z.B. 0.667
+        'percent'  : percent,              # z.B. 67
         'score_sum': round(score_sum, 3),
-        'konzept_id': konzept_id
+        'konzept_id': konzept_id,
     })
 
 

@@ -3,7 +3,16 @@
 {% block title %}Konzept: {{ konzept.name }}{% endblock %}
 
 {% block content %}
-  <h2>{{ konzept.name }}</h2>
+  <h2>
+    {{ konzept.name }}
+    <span class="badge bg-secondary">
+    {% if konzept.scores is not None %}
+      {{ konzept.scores }}
+    {% else %}
+      0
+    {% endif %}
+    </span>
+  </h2>
   {% if konzept.text %}
     <p class="mt-2">{{ konzept.text }}</p>
   {% endif %}
@@ -24,6 +33,14 @@
       </form>
     {% else %}
       <p>Noch keine Übungen verfügbar</p>
+    {% endif %}
+
+    {% if konzept.video_url and 'youtu.be/' in konzept.video_url %}
+      {% with vid=konzept.video_url|cut:'https://youtu.be/'|cut:'http://youtu.be/' %}
+        <div class="ratio ratio-16x9 mt-3">
+          <iframe src="https://www.youtube.com/embed/{{ vid|cut:'?si=' }}" title="YouTube video" allowfullscreen></iframe>
+        </div>
+      {% endwith %}
     {% endif %}
 
   </div>

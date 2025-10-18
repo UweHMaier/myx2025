@@ -21,7 +21,7 @@ body {
 /* Global app content wrapper */
 #app-shell {
   width: 100%;
-  max-width: 720px;     /* cap on wide screens */
+  max-width: 600px;     /* cap on wide screens */
   margin-inline: auto;  /* center horizontally */
   padding-inline: 16px; /* a little breathing room */
 }
