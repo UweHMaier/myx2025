@@ -1,4 +1,5 @@
 from django.db import models
+from django.conf import settings
 import uuid
 
         
@@ -18,6 +19,14 @@ class Kurse(models.Model):
         constraints = [
             models.UniqueConstraint(fields=["fach", "kurs"], name="uniq_fach_kurs")
         ]
+
+    # ⬇️ NEU: Redakteure, die diesen Kurs bearbeiten dürfen
+    editors = models.ManyToManyField(
+        settings.AUTH_USER_MODEL,
+        related_name="editable_courses",
+        blank=True,
+        help_text="Benutzer mit Redakteursrechten für diesen Kurs.",
+    )
 
     def __str__(self):
         return f"{self.fach} – {self.kurs}"
@@ -56,7 +65,6 @@ class QuizQuestion(models.Model):
         return self.question or f"QuizQuestion {self.item_id}"
 
 
-    
 
 # Model for all log info: student answer, feedback
 class QuestionLog(models.Model):
