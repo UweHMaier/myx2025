@@ -191,6 +191,9 @@ def quiz_view(request):
     if total_questions == 0:
         messages.warning(request, "Für diesen Kurs sind noch keine aktiven Fragen hinterlegt.")
         return redirect('kurs')
+    else:
+        #Gesamtanzahl Fragen für das Quiz speichern 
+        request.session['total_questions'] = total_questions
 
     current_index = request.session.get('quiz_index', 0)
     if current_index >= total_questions:

@@ -49,10 +49,10 @@
           {% endif %}
 
           {% if question.text %}
-            <p>{{ question.text }}</p>
+            <p>{{ question.text|default_if_none:""|safe }}</p>
           {% endif %}
 
-          <p>{{ question.question }}</p>
+          <p>{{ question.question|default_if_none:""|safe  }}</p>
 
           <!-- Eingabefeld  -->
           <form method="post">

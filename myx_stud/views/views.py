@@ -116,16 +116,13 @@ def quiz_complete(request):
     # Korrekte gemerkte Antworten (Zähler kam aus der quiz_view)
     correct = int(request.session.get('correct_count', 0))
 
-    # Anzahl aktiver Aufgaben im Kurs (neues Modell!)
-    total = QuizQuestion.objects.filter(
-        active=True,
-        konzept__kurs_id=kurs_id
-    ).count()
+    # Anzahl Quititems
+    total_questions = request.session.get('total_questions')
 
     # Score-Ergebnis (Durchschnitt aus den tatsächlich bewerteten Items)
     score_sum    = float(request.session.get('score_sum', 0.0))
     items_scored = int(request.session.get('items_scored', 0))
-    avg_score    = (score_sum / items_scored) if items_scored > 0 else 0.0
+    avg_score    = (score_sum / total_questions) if items_scored > 0 else 0.0
     percent = max(0, min(100, int(round(100 * avg_score))))
 
     # Save to session per Konzept
@@ -145,7 +142,6 @@ def quiz_complete(request):
 
     return render(request, 'quiz/quiz_complete.html', {
         'correct': correct,
-        'total'  : total,
         'avg_score': round(avg_score, 3),  # z.B. 0.667
         'percent'  : percent,              # z.B. 67
         'score_sum': round(score_sum, 3),
