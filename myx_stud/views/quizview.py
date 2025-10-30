@@ -161,6 +161,7 @@ def quiz_view(request):
         request.session['quiz_index'] = 0
         request.session['score_sum'] = 0.0
         request.session['items_scored'] = 0
+        request.session['correct_count'] = 0   # <— NEU
         request.session.modified = True
 
     quiz_id = request.session.get(SESSION_QUIZ_ID)
@@ -289,7 +290,12 @@ def quiz_view(request):
         if is_correct is None:
             is_correct = (score_val > 0.8)
 
-        if is_correct is True:
+        # ⬇️ NEU: Nur einmal pro Item eine korrekte Lösung zählen
+        key = _session_key(quiz_id, item_id)
+        bucket_before = request.session.get(key, [])
+        already_correct = any(a.get("is_correct") for a in bucket_before)
+
+        if is_correct is True and not already_correct:
             request.session['correct_count'] = request.session.get('correct_count', 0) + 1
             request.session.modified = True
 
